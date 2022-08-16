@@ -5,6 +5,7 @@ export type ComponentClass = typeof Component;
 
 export abstract class Component implements EngineObject {
   constructor(readonly name: string) {}
+  
   toString(): string {
     let str: string = `${this.name}`;
     for (const fildKey in this) {

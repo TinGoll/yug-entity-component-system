@@ -10,9 +10,12 @@ export class Engine extends Map<Entity, Entity> {
   private static instance?: Engine;
 
   private updating: boolean = false;
+  private notifying: boolean = false;
 
   private readonly componentAdded: Listener<Entity> = new ComponentListener();
   private readonly componentRemoved: Listener<Entity> = new ComponentListener();
+  private entityListeners: Array<EntityListenerData> =
+    new Array<EntityListenerData>();
 
   private entityManager: EntityManager = new EntityManager(
     new EngineEntityListener(this)
@@ -24,6 +27,10 @@ export class Engine extends Map<Entity, Entity> {
   private constructor() {
     super();
     // Инициализация.
+  }
+
+  public getEntitiesFor(): ImmutableArray<Entity> | null {
+    return null;
   }
 
   /**
@@ -100,11 +107,72 @@ export class Engine extends Map<Entity, Entity> {
     return this.entityManager.getEntities();
   }
 
-  removeEntityInternal(entity: Entity) {
-    throw new Error("Method not implemented.");
+  public addEntityListener(
+    listener: EntityListener,
+    priority: number = 0
+  ): void {
+    let insertionIndex: number = 0;
+    while (insertionIndex < this.entityListeners.length) {
+      if (this.entityListeners[insertionIndex].priority <= priority) {
+        insertionIndex++;
+      } else {
+        break;
+      }
+    }
+    const entityListenerData: EntityListenerData = new EntityListenerData();
+    entityListenerData.listener = listener;
+    entityListenerData.priority = priority;
+    this.entityListeners.splice(insertionIndex, 0, entityListenerData);
   }
-  addEntityInternal(entity: Entity) {
-    throw new Error("Method not implemented.");
+
+  public removeEntityListener(listener: EntityListener) {
+    for (let i = 0; i < this.entityListeners.length; i++) {
+      const entityListenerData = this.entityListeners[i];
+      if (entityListenerData.listener === listener) {
+        this.entityListeners.splice(i, 1);
+      }
+    }
+  }
+
+  public removeEntityInternal(entity: Entity) {
+    this.updateNotifying(entity, "entityRemoved");
+    entity.componentAdded.remove(this.componentAdded);
+    entity.componentRemoved.remove(this.componentRemoved);
+  }
+  public addEntityInternal(entity: Entity) {
+    entity.componentAdded.add(this.componentAdded);
+    entity.componentRemoved.add(this.componentRemoved);
+    this.updateNotifying(entity, "entityAdded");
+  }
+
+  public update(): void {}
+  private updateNotifying(
+    entity: Entity,
+    type: "entityAdded" | "entityRemoved"
+  ) {
+    this.notifying = true;
+    try {
+      if (type === "entityRemoved") {
+        for (const entityListenerData of this.entityListeners) {
+          entityListenerData.listener?.entityRemoved(entity);
+        }
+      }
+      if (type === "entityAdded") {
+        for (const entityListenerData of this.entityListeners) {
+          entityListenerData.listener?.entityAdded(entity);
+        }
+      }
+    } catch (e) {
+    } finally {
+      this.notifying = false;
+    }
+  }
+
+  isUpdating() {
+    return this.updating;
+  }
+  isNotifying() {
+    return this.notifying;
   }
 
   /**
@@ -134,4 +202,9 @@ class ComponentListener implements Listener<Entity> {
   public receive(signal: Signal<Entity>, object: Entity) {
     // familyManager.updateFamilyMembership(object);
   }
+}
+
+class EntityListenerData {
+  public listener?: EntityListener;
+  public priority: number = 0;
 }

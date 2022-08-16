@@ -5,7 +5,9 @@ import { ImmutableArray } from "../utils/ImmutableArray";
 import { Component, ComponentClass } from "./Component";
 
 export class Entity implements EngineObject {
+  public id: number = 0;
   public key: string = "";
+  public parentKey?: string;
   /** Отправит событие при добавлении компонента. */
   public readonly componentAdded: Signal<Entity>;
   /** Будет отправлять событие при удалении компонента. */
