@@ -10,9 +10,16 @@ export abstract class EntitySystem implements EngineObject {
    * Инициализирует EntitySystem с указанным приоритетом.
    * @param priority Приоритет для выполнения этой системы (ниже означает более высокий приоритет).
    */
-  constructor(protected readonly name: string, priority: number = 0) {
+  constructor(
+    protected readonly systemClass: typeof EntitySystem,
+    priority: number = 0
+  ) {
     this.processing = true;
     this.priority = priority;
+  }
+
+  getClass(): typeof EntitySystem {
+    return this.systemClass;
   }
 
   /**
@@ -52,7 +59,7 @@ export abstract class EntitySystem implements EngineObject {
   public update(deltaTime: number): void {}
 
   toString(): string {
-    return `${this.name}`;
+    return `${this.systemClass.name}`;
   }
   hashCode(): number {
     return convertToHashCode(this.toString());

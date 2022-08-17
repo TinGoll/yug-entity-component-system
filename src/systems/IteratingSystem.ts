@@ -7,16 +7,12 @@ import { ImmutableArray } from "../utils/ImmutableArray";
 export abstract class IteratingSystem extends EntitySystem {
   private entities: ImmutableArray<Entity> | null = null;
 
-  constructor(
-    protected readonly family: Family,
-    name: string,
-    priority: number = 0
-  ) {
-    super(name, priority);
+  constructor(sysClass: typeof EntitySystem, private readonly family: Family, priority?: number){
+    super(sysClass, priority);
   }
 
   addedToEngine(engine: Engine): void {
-    this.entities; // Получить сущности согласно семейства
+    this.entities = engine.getEntitiesFor(this.family);
   }
 
   public removedFromEngine(engine: Engine): void {

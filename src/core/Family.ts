@@ -44,9 +44,10 @@ class Builder {
 }
 
 export class Family {
-  private static families: Map<string, Family> = new Map<string, Family>();
-  private static builder: Builder = new Builder();
-  public static zeroBits: Bits = new Bits();
+  private static readonly families: Map<string, Family> = new Map<string, Family>();
+  private static readonly builder: Builder = new Builder();
+  public static readonly zeroBits: Bits = new Bits();
+
   private static familyIndex: number = 0;
 
   private index: number;
@@ -61,12 +62,32 @@ export class Family {
 
   /** @return Соответствует ли объект семейным требованиям или нет */
   matches(entity: Entity): boolean {
-    return false;
+
+    const entityComponentBits: Bits = entity.getComponentBits();
+
+		if (!entityComponentBits.containsAll(this.all)) {
+			return false;
+		}
+
+		if (!this.one.isEmpty() && !this.one.intersects(entityComponentBits)) {
+			return false;
+		}
+
+		if (!this.exclude.isEmpty() && this.exclude.intersects(entityComponentBits)) {
+			return false;
+		}
+
+		return true;
   }
   /** Возвращает hash code  в числовом формате */
   hashCode(): number {
     return this.index;
   }
+
+  /** @return Уникальный индекс этого семейства */
+	public getIndex (): number {
+		return this.index;
+	}
 
   /** Сравнивает объект семейства */
   equals(object: object) {

@@ -1,25 +1,38 @@
 import { EntityListener } from "../@interfaces/EntityListener";
+import { SystemListener } from "../@interfaces/Systemlisteners";
 import { Listener } from "../signals/Listener";
 import { Signal } from "../signals/Signal";
 import { ImmutableArray } from "../utils/ImmutableArray";
 import { Component, ComponentClass } from "./Component";
 import { Entity } from "./Entity";
 import { EntityManager } from "./EntityManager";
+import { EntitySystem } from "./EntitySystem";
+import { Family } from "./Family";
+import { FamilyManager } from "./FamilyManager";
+import { SystemManager } from "./SystemManager";
 
 export class Engine extends Map<Entity, Entity> {
   private static instance?: Engine;
 
-  private updating: boolean = false;
-  private notifying: boolean = false;
+  private static empty: Family = Family.all().get();
 
-  private readonly componentAdded: Listener<Entity> = new ComponentListener();
-  private readonly componentRemoved: Listener<Entity> = new ComponentListener();
-  private entityListeners: Array<EntityListenerData> =
-    new Array<EntityListenerData>();
+  private readonly componentAdded: Listener<Entity> = new ComponentListener(this);
+  private readonly componentRemoved: Listener<Entity> = new ComponentListener(this);
+  private systemManager = new SystemManager(new EngineSystemListener(this));
 
   private entityManager: EntityManager = new EntityManager(
     new EngineEntityListener(this)
   );
+
+  private familyManager: FamilyManager = new FamilyManager(
+    this.entityManager.getEntities()
+  );
+
+  private updating: boolean = false;
+  private notifying: boolean = false;
+
+  // private entityListeners: Array<EntityListenerData> =
+  //   new Array<EntityListenerData>();
 
   /**
    * Приватный Конструтор, используйте {@link Engine.create()}
@@ -27,10 +40,6 @@ export class Engine extends Map<Entity, Entity> {
   private constructor() {
     super();
     // Инициализация.
-  }
-
-  public getEntitiesFor(): ImmutableArray<Entity> | null {
-    return null;
   }
 
   /**
@@ -69,6 +78,7 @@ export class Engine extends Map<Entity, Entity> {
       throw error;
     }
   }
+
   /**
    * Удаляет сущность из этого движка.
    */
@@ -79,6 +89,7 @@ export class Engine extends Map<Entity, Entity> {
   removeAllEntities(): void {
     this.entityManager.removeAllEntities();
   }
+
   /**
    * Возвращает {@link ImmutableArray} из {@link Entity}, которым управляет Engine
    * но не может использоваться для изменения состояния. Этот массив не
@@ -107,65 +118,91 @@ export class Engine extends Map<Entity, Entity> {
     return this.entityManager.getEntities();
   }
 
+  /**
+   * Добавляет {@link EntitySystem} в этот движок.
+   * Если в Движке уже была система того же класса,
+   * новый заменит старый.
+   */
+  public addSystem(system: EntitySystem): void {
+    this.systemManager.addSystem(system);
+  }
+
+  /**
+   * Удаляет {@link EntitySystem} из этого Engine.
+   */
+  public removeSystem(system: EntitySystem): void {
+    this.systemManager.removeSystem(system);
+  }
+
+  /**
+   * Удаляет все системы из этого двигателя.
+   */
+  public removeAllSystems(): void {
+    this.systemManager.removeAllSystems();
+  }
+
+  /**
+   * Быстрый поиск {@link EntitySystem}.
+   */
+  public getSystem<T extends EntitySystem>(systemType: any): T {
+    return <T> this.systemManager.getSystem(systemType);
+  }
+
+  /**
+   * @return неизменяемый массив всех систем сущностей, управляемых {@link Engine}.
+   */
+  public getSystems(): ImmutableArray<EntitySystem> {
+    return this.systemManager.getSystems();
+  }
+
+  /**
+   * Возвращает неизменяемую коллекцию сущностей для указанного {@link Family}.
+   * Возвращает один и тот же экземпляр каждый раз для одного и того же семейства.
+   */
+  public getEntitiesFor(family: Family): ImmutableArray<Entity> {
+    return this.familyManager.getEntitiesFor(family);
+  }
+
   public addEntityListener(
-    listener: EntityListener,
-    priority: number = 0
+    family: Family,
+    priority: number,
+    listener: EntityListener
   ): void {
-    let insertionIndex: number = 0;
-    while (insertionIndex < this.entityListeners.length) {
-      if (this.entityListeners[insertionIndex].priority <= priority) {
-        insertionIndex++;
-      } else {
-        break;
-      }
-    }
-    const entityListenerData: EntityListenerData = new EntityListenerData();
-    entityListenerData.listener = listener;
-    entityListenerData.priority = priority;
-    this.entityListeners.splice(insertionIndex, 0, entityListenerData);
+    this.familyManager.addEntityListener(family, priority, listener);
   }
 
   public removeEntityListener(listener: EntityListener) {
-    for (let i = 0; i < this.entityListeners.length; i++) {
-      const entityListenerData = this.entityListeners[i];
-      if (entityListenerData.listener === listener) {
-        this.entityListeners.splice(i, 1);
-      }
+    this.familyManager.removeEntityListener(listener);
+  }
+
+  public update(deltaTime: number): void {
+    if (this.updating) return;
+    this.updating = true;
+    const systems: ImmutableArray<EntitySystem> = this.systemManager.getSystems();
+    try {
+      for (let i = 0; i < systems.size(); ++i) {
+				const system = systems.get(i);
+        if (!system) continue;
+				if (system.checkProcessing()) {
+					system.update(deltaTime);
+				}
+			}
+    } catch (e) {
+    }finally{
+      this.updating = false;
     }
   }
 
-  public removeEntityInternal(entity: Entity) {
-    this.updateNotifying(entity, "entityRemoved");
-    entity.componentAdded.remove(this.componentAdded);
-    entity.componentRemoved.remove(this.componentRemoved);
-  }
   public addEntityInternal(entity: Entity) {
     entity.componentAdded.add(this.componentAdded);
     entity.componentRemoved.add(this.componentRemoved);
-    this.updateNotifying(entity, "entityAdded");
+    this.familyManager.updateFamilyMembership(entity);
   }
 
-  public update(): void {}
-  private updateNotifying(
-    entity: Entity,
-    type: "entityAdded" | "entityRemoved"
-  ) {
-    this.notifying = true;
-    try {
-      if (type === "entityRemoved") {
-        for (const entityListenerData of this.entityListeners) {
-          entityListenerData.listener?.entityRemoved(entity);
-        }
-      }
-      if (type === "entityAdded") {
-        for (const entityListenerData of this.entityListeners) {
-          entityListenerData.listener?.entityAdded(entity);
-        }
-      }
-    } catch (e) {
-    } finally {
-      this.notifying = false;
-    }
+  public removeEntityInternal(entity: Entity) {
+    this.familyManager.updateFamilyMembership(entity);
+    entity.componentAdded.remove(this.componentAdded);
+    entity.componentRemoved.remove(this.componentRemoved);
   }
 
   isUpdating() {
@@ -173,6 +210,10 @@ export class Engine extends Map<Entity, Entity> {
   }
   isNotifying() {
     return this.notifying;
+  }
+
+  getFamilyManager(): FamilyManager {
+    return this.familyManager;
   }
 
   /**
@@ -199,12 +240,23 @@ class EngineEntityListener implements EntityListener {
 }
 
 class ComponentListener implements Listener<Entity> {
+  constructor(private readonly engine: Engine){}
   public receive(signal: Signal<Entity>, object: Entity) {
-    // familyManager.updateFamilyMembership(object);
+    this.engine.getFamilyManager().updateFamilyMembership(object);
   }
 }
 
-class EntityListenerData {
-  public listener?: EntityListener;
-  public priority: number = 0;
+class EngineSystemListener implements SystemListener {
+  constructor(private readonly engine: Engine) {
+
+  }
+  public systemAdded(system: EntitySystem) {
+    system.addedToEngineInternal(this.engine);
+  }
+
+  public systemRemoved(system: EntitySystem) {
+    system.removedFromEngineInternal(this.engine);
+  }
 }
+	
+

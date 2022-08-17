@@ -40,7 +40,7 @@ export class ComponentType {
   }
 
   /**
-   * Быстрый вспомогательный метод. То же самое можно сделать с помощью {@link ComponentType.getFor(Class<? extends Component>)}.
+   * Быстрый вспомогательный метод. То же самое можно сделать с помощью {@link ComponentType.getFor(Component)}.
    * @param componentType Класс {@link Component}
    * @return Индекс для указанного класса {@link Component}.
    */
@@ -49,12 +49,12 @@ export class ComponentType {
   }
 
   /**
-   * @param componentTypes list of {@link Component} classes
+   * @param componentTypes список {@link Component} классов
    * @return Биты, представляющие набор компонентов для быстрого сравнения и сопоставления. Видеть
    *         {@link Family#getFor(Bits, Bits, Bits)}.
    */
   public static getBitsFor(...componentTypes: ComponentClass[]): Bits {
-    
+
     const bits = new Bits();
     let typesLength = componentTypes.length;
     for (let i = 0; i < typesLength; i++) {

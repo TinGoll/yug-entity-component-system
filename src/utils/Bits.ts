@@ -46,7 +46,7 @@ export class Bits implements EngineObject {
   }
   /**
    * @param index индекс устанавливаемого бита
-   * @throws ArrayIndexOutOfBoundsException, если индекс < 0 */
+   * @throws если индекс < 0 */
   set(index: number): void {
     const word: number = index >>> 6;
     this.checkCapacity(word);
@@ -169,7 +169,7 @@ export class Bits implements EngineObject {
   /** Выполняет логическое <b>И</b> этого целевого набора битов с установленным битом аргумента. Этот набор битов изменен так, что каждый бит
    * в нем имеет значение true тогда и только тогда, когда он изначально имел значение true и соответствующий бит в битовом наборе
    * Аргумент также имел значение true.
-   * @param другой бит установлен
+   * @param other 
    */
   public and(other: Bits): void {
     let commonWords = Math.min(this.bits.length, other.bits.length);
@@ -255,7 +255,6 @@ export class Bits implements EngineObject {
   /** Возвращает значение true, если этот набор битов является надмножеством указанного набора, т. е. все биты, установленные в значение true, также установлены в значение
    * true в указанном BitSet.
    *
-   * @param другой бит установлен
    * @return логическое значение, указывающее, является ли этот набор битов надмножеством указанного набора */
   public containsAll(other: Bits): boolean {
     const bits = this.bits;

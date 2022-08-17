@@ -4,8 +4,15 @@ import { convertToHashCode } from "../utils/HashCode";
 export type ComponentClass = typeof Component;
 
 export abstract class Component implements EngineObject {
-  constructor(readonly name: string) {}
+  public name: string;
+  constructor(private readonly _componentClass: ComponentClass) {
+    this.name = _componentClass.name;
+  }
   
+  getClass(): ComponentClass {
+    return this._componentClass;
+  }
+
   toString(): string {
     let str: string = `${this.name}`;
     for (const fildKey in this) {
