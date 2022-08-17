@@ -7,8 +7,12 @@ import { ImmutableArray } from "../utils/ImmutableArray";
 export abstract class IteratingSystem extends EntitySystem {
   private entities: ImmutableArray<Entity> | null = null;
 
-  constructor(sysClass: typeof EntitySystem, private readonly family: Family, priority?: number){
-    super(sysClass, priority);
+  constructor(
+    sysClass: any,
+    private readonly family: Family,
+    priority?: number
+  ) {
+    super(<any>sysClass, priority);
   }
 
   addedToEngine(engine: Engine): void {
