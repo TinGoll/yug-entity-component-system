@@ -99,9 +99,9 @@ export class Entity implements EngineObject {
 	 *         сущность не имеет компонентов для этого класса
    */
 
-  getComponent<T extends Component>(component: ComponentType): Component | null
-  getComponent<T extends Component>(component: ComponentClass): Component | null
-  getComponent<T extends Component>(component: ComponentClass | ComponentType): Component | null {
+  getComponent<T extends Component>(component: ComponentType): T | null
+  getComponent<T extends Component>(component: ComponentClass): T | null
+  getComponent<T extends Component>(component: ComponentClass | ComponentType): T | null {
     let componentType: ComponentType;
     if (typeof component === "function") {
       componentType = ComponentType.getFor(component);
