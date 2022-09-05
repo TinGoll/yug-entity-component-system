@@ -1,7 +1,8 @@
 import { EngineObject } from "../@interfaces/EngineObject";
 import { convertToHashCode } from "../utils/HashCode";
 
-export type ComponentClass = typeof Component;
+//export type ComponentClass = typeof Component;
+export type ComponentClass = new (...args: any[]) => Component;
 
 export abstract class Component implements EngineObject {
   public name: string;
