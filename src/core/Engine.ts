@@ -16,8 +16,12 @@ export class Engine extends Map<Entity, Entity> {
 
   private static empty: Family = Family.all().get();
 
-  private readonly componentAdded: Listener<Entity> = new ComponentListener(this);
-  private readonly componentRemoved: Listener<Entity> = new ComponentListener(this);
+  private readonly componentAdded: Listener<Entity> = new ComponentListener(
+    this
+  );
+  private readonly componentRemoved: Listener<Entity> = new ComponentListener(
+    this
+  );
   private systemManager = new SystemManager(new EngineSystemListener(this));
 
   private entityManager: EntityManager = new EntityManager(
@@ -145,7 +149,7 @@ export class Engine extends Map<Entity, Entity> {
    * Быстрый поиск {@link EntitySystem}.
    */
   public getSystem<T extends EntitySystem>(systemType: any): T {
-    return <T> this.systemManager.getSystem(systemType);
+    return <T>this.systemManager.getSystem(systemType);
   }
 
   /**
@@ -178,17 +182,18 @@ export class Engine extends Map<Entity, Entity> {
   public update(deltaTime: number): void {
     if (this.updating) return;
     this.updating = true;
-    const systems: ImmutableArray<EntitySystem> = this.systemManager.getSystems();
+    const systems: ImmutableArray<EntitySystem> =
+      this.systemManager.getSystems();
     try {
       for (let i = 0; i < systems.size(); ++i) {
-				const system = systems.get(i);
+        const system = systems.get(i);
         if (!system) continue;
-				if (system.checkProcessing()) {
-					system.update(deltaTime);
-				}
-			}
+        if (system.checkProcessing()) {
+          system.update(deltaTime);
+        }
+      }
     } catch (e) {
-    }finally{
+    } finally {
       this.updating = false;
     }
   }
@@ -222,10 +227,21 @@ export class Engine extends Map<Entity, Entity> {
    * @returns Engine
    */
   public static create() {
-    if (!Engine.instance) {
-      Engine.instance = new Engine();
-    }
-    return Engine.instance;
+    /***************************** */
+    /***************************** */
+    // Эта реализация, позволяет иметь только один экземпляр движка.
+    // Закомментировать, если нужно иметь много копий.
+
+    // if (!Engine.instance) {
+    //   Engine.instance = new Engine();
+    // }
+    // return Engine.instance;
+
+    /***************************** */
+    /***************************** */
+    // Разкомментировать, если надо иметь много копий.
+
+    return new Engine();
   }
 }
 
@@ -240,16 +256,14 @@ class EngineEntityListener implements EntityListener {
 }
 
 class ComponentListener implements Listener<Entity> {
-  constructor(private readonly engine: Engine){}
+  constructor(private readonly engine: Engine) {}
   public receive(signal: Signal<Entity>, object: Entity) {
     this.engine.getFamilyManager().updateFamilyMembership(object);
   }
 }
 
 class EngineSystemListener implements SystemListener {
-  constructor(private readonly engine: Engine) {
-
-  }
+  constructor(private readonly engine: Engine) {}
   public systemAdded(system: EntitySystem) {
     system.addedToEngineInternal(this.engine);
   }
@@ -258,5 +272,3 @@ class EngineSystemListener implements SystemListener {
     system.removedFromEngineInternal(this.engine);
   }
 }
-	
-
