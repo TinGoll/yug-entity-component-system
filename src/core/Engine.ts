@@ -16,21 +16,13 @@ export class Engine extends Map<Entity, Entity> {
 
   private static empty: Family = Family.all().get();
 
-  private readonly componentAdded: Listener<Entity> = new ComponentListener(
-    this
-  );
-  private readonly componentRemoved: Listener<Entity> = new ComponentListener(
-    this
-  );
+  private readonly componentAdded: Listener<Entity> = new ComponentListener(this);
+  private readonly componentRemoved: Listener<Entity> = new ComponentListener(this);
   private systemManager = new SystemManager(new EngineSystemListener(this));
 
-  private entityManager: EntityManager = new EntityManager(
-    new EngineEntityListener(this)
-  );
+  private entityManager: EntityManager = new EntityManager(new EngineEntityListener(this));
 
-  private familyManager: FamilyManager = new FamilyManager(
-    this.entityManager.getEntities()
-  );
+  private familyManager: FamilyManager = new FamilyManager(this.entityManager.getEntities());
 
   private updating: boolean = false;
   private notifying: boolean = false;
@@ -41,7 +33,7 @@ export class Engine extends Map<Entity, Entity> {
   /**
    * Приватный Конструтор, используйте {@link Engine.create()}
    */
-  private constructor() {
+  constructor() {
     super();
     // Инициализация.
   }
@@ -61,10 +53,7 @@ export class Engine extends Map<Entity, Entity> {
    * createComponent(MyComponent, arg1, arg2, ...args);
    * ```
    */
-  createComponent<T extends Component>(
-    componentClass: ComponentClass,
-    ...args: any[]
-  ): T {
+  createComponent<T extends Component>(componentClass: ComponentClass, ...args: any[]): T {
     // @ts-ignore
     const instance = <T>new (<ComponentClass>componentClass)(...args);
     return instance;
@@ -167,11 +156,7 @@ export class Engine extends Map<Entity, Entity> {
     return this.familyManager.getEntitiesFor(family);
   }
 
-  public addEntityListener(
-    family: Family,
-    priority: number,
-    listener: EntityListener
-  ): void {
+  public addEntityListener(family: Family, priority: number, listener: EntityListener): void {
     this.familyManager.addEntityListener(family, priority, listener);
   }
 
@@ -182,8 +167,7 @@ export class Engine extends Map<Entity, Entity> {
   public update(deltaTime: number): void {
     if (this.updating) return;
     this.updating = true;
-    const systems: ImmutableArray<EntitySystem> =
-      this.systemManager.getSystems();
+    const systems: ImmutableArray<EntitySystem> = this.systemManager.getSystems();
     try {
       for (let i = 0; i < systems.size(); ++i) {
         const system = systems.get(i);
