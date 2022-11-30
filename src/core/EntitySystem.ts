@@ -10,10 +10,7 @@ export abstract class EntitySystem implements EngineObject {
    * Инициализирует EntitySystem с указанным приоритетом.
    * @param priority Приоритет для выполнения этой системы (ниже означает более высокий приоритет).
    */
-  constructor(
-    protected readonly systemClass: typeof EntitySystem,
-    priority: number = 0
-  ) {
+  constructor(protected readonly systemClass: typeof EntitySystem, priority: number = 0) {
     this.processing = true;
     this.priority = priority;
   }
@@ -56,7 +53,7 @@ export abstract class EntitySystem implements EngineObject {
    * Метод обновления вызывается каждый тик.
    * @param deltaTime Время, прошедшее с последнего кадра в секундах.
    */
-  public update(deltaTime: number): void {}
+  public async update(deltaTime: number): Promise<void> {}
 
   toString(): string {
     return `${this.systemClass.name}`;

@@ -7,11 +7,7 @@ import { ImmutableArray } from "../utils/ImmutableArray";
 export abstract class IteratingSystem extends EntitySystem {
   private entities: ImmutableArray<Entity> | null = null;
 
-  constructor(
-    sysClass: any,
-    private readonly family: Family,
-    priority?: number
-  ) {
+  constructor(sysClass: any, private readonly family: Family, priority?: number) {
     super(<any>sysClass, priority);
   }
 
@@ -35,15 +31,15 @@ export abstract class IteratingSystem extends EntitySystem {
     return this.entities;
   }
 
-  public update(deltaTime: number): void {
-    this.startProcessing();
+  public async update(deltaTime: number): Promise<void> {
+    await this.startProcessing();
     if (this.entities) {
       for (let i = 0; i < this.entities.size(); i++) {
         const entity = this.entities.get(i);
-        if (entity) this.processEntity(entity, deltaTime);
+        if (entity) await this.processEntity(entity, deltaTime);
       }
     }
-    this.endProcessing();
+    await this.endProcessing();
   }
 
   /**
@@ -54,18 +50,18 @@ export abstract class IteratingSystem extends EntitySystem {
    * @param entity    Текущая обрабатываемая сущность
    * @param deltaTime Разница во времени между последним и текущим кадром
    */
-  protected abstract processEntity(entity: Entity, deltaTime: number): void;
+  protected abstract processEntity(entity: Entity, deltaTime: number): Promise<void>;
 
   /**
    * Этот метод вызывается один раз при каждом вызове обновления EntitySystem до
    * начала обработки объекта. Переопределите этот метод, чтобы
    * реализовать ваши конкретные условия запуска.
    */
-  startProcessing(): void {}
+  async startProcessing(): Promise<void> {}
   /**
    * Этот метод вызывается один раз при каждом вызове обновления EntitySystem
    * после завершения обработки сущности. Переопределите этот метод, чтобы
    * реализуйте свои конкретные конечные условия.
    */
-  endProcessing(): void {}
+  async endProcessing(): Promise<void> {}
 }

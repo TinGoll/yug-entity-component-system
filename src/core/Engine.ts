@@ -164,7 +164,7 @@ export class Engine extends Map<Entity, Entity> {
     this.familyManager.removeEntityListener(listener);
   }
 
-  public update(deltaTime: number): void {
+  public async update(deltaTime: number): Promise<void> {
     if (this.updating) return;
     this.updating = true;
     const systems: ImmutableArray<EntitySystem> = this.systemManager.getSystems();
@@ -173,7 +173,7 @@ export class Engine extends Map<Entity, Entity> {
         const system = systems.get(i);
         if (!system) continue;
         if (system.checkProcessing()) {
-          system.update(deltaTime);
+          await system.update(deltaTime);
         }
       }
     } catch (e) {
