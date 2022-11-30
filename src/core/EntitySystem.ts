@@ -3,9 +3,9 @@ import { convertToHashCode } from "../utils/HashCode";
 import { Engine } from "./Engine";
 
 export abstract class EntitySystem implements EngineObject {
-  private processing: boolean = false;
+  protected processing: boolean = false;
   public priority: number;
-  private engine: Engine | null = null;
+  protected engine: Engine | null = null;
   /**
    * Инициализирует EntitySystem с указанным приоритетом.
    * @param priority Приоритет для выполнения этой системы (ниже означает более высокий приоритет).
