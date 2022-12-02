@@ -1,0 +1,64 @@
+import { Engine } from "../core/Engine";
+import { Entity } from "../core/Entity";
+import { EntitySystem } from "../core/EntitySystem";
+import { Family } from "../core/Family";
+import { ImmutableArray } from "../utils/ImmutableArray";
+
+export abstract class BaseSystem extends EntitySystem {
+  protected entities: ImmutableArray<Entity> | null = null;
+
+  constructor(sysClass: any, private readonly family: Family, priority?: number) {
+    super(<any>sysClass, priority);
+  }
+
+  addedToEngine(engine: Engine): void {
+    this.entities = engine.getEntitiesFor(this.family);
+  }
+
+  public removedFromEngine(engine: Engine): void {
+    this.entities = null; // Уничтожить массив сущностей.
+  }
+  /**
+   * @returns семейство, которое использовалось для создания системы.
+   */
+  getFamily(): Family {
+    return this.family;
+  }
+  /**
+   * @return набор сущностей, обрабатываемых системой
+   */
+  getEntities(): ImmutableArray<Entity> | null {
+    return this.entities;
+  }
+
+  public async update(deltaTime: number): Promise<void> {
+    await this.startProcessing();
+    if (this.entities) {
+      await this.processEntities(this.entities, deltaTime);
+    }
+    await this.endProcessing();
+  }
+
+  /**
+   * Этот метод вызывается для каждой сущности при каждом вызове обновления
+   * EntitySystem. Переопределите это, чтобы реализовать
+   * специальная обработка.
+   *
+   * @param entity    Текущая обрабатываемая сущность
+   * @param deltaTime Разница во времени между последним и текущим кадром
+   */
+  protected abstract processEntities(entities: ImmutableArray<Entity>, deltaTime: number): Promise<void>;
+
+  /**
+   * Этот метод вызывается один раз при каждом вызове обновления EntitySystem до
+   * начала обработки объекта. Переопределите этот метод, чтобы
+   * реализовать ваши конкретные условия запуска.
+   */
+  async startProcessing(): Promise<void> {}
+  /**
+   * Этот метод вызывается один раз при каждом вызове обновления EntitySystem
+   * после завершения обработки сущности. Переопределите этот метод, чтобы
+   * реализуйте свои конкретные конечные условия.
+   */
+  async endProcessing(): Promise<void> {}
+}
