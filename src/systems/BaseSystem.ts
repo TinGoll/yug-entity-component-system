@@ -10,11 +10,9 @@ export abstract class BaseSystem extends EntitySystem {
   constructor(sysClass: any, private readonly family: Family, priority?: number) {
     super(<any>sysClass, priority);
   }
-
   addedToEngine(engine: Engine): void {
     this.entities = engine.getEntitiesFor(this.family);
   }
-
   public removedFromEngine(engine: Engine): void {
     this.entities = null; // Уничтожить массив сущностей.
   }
@@ -30,7 +28,6 @@ export abstract class BaseSystem extends EntitySystem {
   getEntities(): ImmutableArray<Entity> | null {
     return this.entities;
   }
-
   public async update(deltaTime: number): Promise<void> {
     await this.startProcessing();
     if (this.entities) {
@@ -38,7 +35,6 @@ export abstract class BaseSystem extends EntitySystem {
     }
     await this.endProcessing();
   }
-
   /**
    * Этот метод вызывается один раз, принимая массив сущностей.
    * EntitySystem. Переопределите это, чтобы реализовать
