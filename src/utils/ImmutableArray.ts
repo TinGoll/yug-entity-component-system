@@ -7,6 +7,11 @@ export class ImmutableArray<T extends EngineObject>
   implements EngineIterable<T>, EngineObject
 {
   private index: number = 0;
+
+  /**
+   * Класс - оболочка для массива. Являеться неизменяемым объектом.
+   * @param array 
+   */
   constructor(private readonly array: Array<T>) {}
 
   public size(): number {

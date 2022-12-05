@@ -45,9 +45,16 @@ export abstract class EntitySystem implements EngineObject {
    * @return экземпляр двигателя, в котором зарегистрирована система.
    * Будет нулевым, если система не связана ни с одним экземпляром движка.
    */
-  public getEngine(): Engine | null {
-    return this.engine;
+  public getEngine<T extends Engine = Engine>(): T | null {
+    return <T>this.engine;
   }
+
+  /** Вызывается каждый раз, перед обновлением системы. */
+  public async beforeUpdate(): Promise<void> {}
+
+  /** Вызывается каждый раз, после обновлением системы. Метод будет вызван,
+   * даже в случае отключения обновления в системе. */
+  public async afterUpdate(): Promise<void> {}
 
   /**
    * Метод обновления вызывается каждый тик.

@@ -172,9 +172,11 @@ export class Engine extends Map<Entity, Entity> {
       for (let i = 0; i < systems.size(); ++i) {
         const system = systems.get(i);
         if (!system) continue;
+        await system.beforeUpdate();
         if (system.checkProcessing()) {
           await system.update(deltaTime);
         }
+        await system.afterUpdate();
       }
     } catch (e) {
     } finally {
