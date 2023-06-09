@@ -11,8 +11,8 @@ import { Family } from "./Family";
 import { FamilyManager } from "./FamilyManager";
 import { SystemManager } from "./SystemManager";
 
-export class Engine<D extends object = object, E extends Entity = Entity> extends Map<E, E> {
-  public userData: D = <D>{};
+export class Engine<E extends Entity = Entity, D extends object = object> extends Map<E, E> {
+  public data: D = {} as D;
 
   private static instance?: Engine;
 
@@ -32,12 +32,10 @@ export class Engine<D extends object = object, E extends Entity = Entity> extend
   // private entityListeners: Array<EntityListenerData> =
   //   new Array<EntityListenerData>();
 
-  /**
-   * Приватный Конструтор, используйте {@link Engine.create()}
-   */
-  constructor() {
+  constructor(data?: D) {
     super();
     // Инициализация.
+    this.data = data || ({} as D);
   }
 
   /**
@@ -50,7 +48,8 @@ export class Engine<D extends object = object, E extends Entity = Entity> extend
 
   /**
    * Создает новый компонент {@link Component}. Чтобы использовать этот метод, ваши
-   * компоненты должны иметь видимый конструктор без аргументов.
+   * компоненты должны иметь конструктор без аргументов.
+   * ! Теперь есть возможность передавать аргументы
    * ```js
    * createComponent(MyComponent, arg1, arg2, ...args);
    * ```
