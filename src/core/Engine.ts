@@ -12,7 +12,7 @@ import { FamilyManager } from "./FamilyManager";
 import { SystemManager } from "./SystemManager";
 
 export class Engine<E extends Entity = Entity, D extends object = object> extends Map<E, E> {
-  public data: D = {} as D;
+  public data: D;
 
   private static instance?: Engine;
 
