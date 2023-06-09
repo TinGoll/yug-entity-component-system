@@ -5,23 +5,23 @@ import { ImmutableArray } from "../utils/ImmutableArray";
 import { Entity } from "./Entity";
 import { Family } from "./Family";
 
-export class FamilyManager {
-  private families: Map<Family, Array<Entity>> = new Map<
+export class FamilyManager<E extends Entity = Entity> {
+  private families: Map<Family, Array<E>> = new Map<
     Family,
-    Array<Entity>
+    Array<E>
   >();
-  private immutableFamilies: Map<Family, ImmutableArray<Entity>> = new Map<
+  private immutableFamilies: Map<Family, ImmutableArray<E>> = new Map<
     Family,
-    ImmutableArray<Entity>
+    ImmutableArray<E>
   >();
 
   private entityListeners: EngineArray<EntityListenerData> = new EngineArray<EntityListenerData>()
   private entityListenerMasks: Map<Family, Bits> = new Map<Family, Bits>;
   private _notifying: boolean = false;
 
-  constructor(private readonly entities: ImmutableArray<Entity>) {}
+  constructor(private readonly entities: ImmutableArray<E>) {}
 
-  getEntitiesFor(family: Family): ImmutableArray<Entity> {
+  getEntitiesFor(family: Family): ImmutableArray<E> {
     return this.registerFamily(family);
   }
   
@@ -56,11 +56,11 @@ export class FamilyManager {
 		this.entityListeners.insert(insertionIndex, entityListenerData);
 	}
 
-  registerFamily(family: Family): ImmutableArray<Entity> {
+  registerFamily(family: Family): ImmutableArray<E> {
     let entitiesInFamily = this.immutableFamilies.get(family) || null;
     if (!entitiesInFamily) {
-      const familyEntities = new Array<Entity>();
-      entitiesInFamily = new ImmutableArray<Entity>(familyEntities);
+      const familyEntities = new Array<E>();
+      entitiesInFamily = new ImmutableArray<E>(familyEntities);
       this.families.set(family, familyEntities);
       this.immutableFamilies.set(family, entitiesInFamily);
       this.entityListenerMasks.set(family, new Bits())
@@ -91,7 +91,7 @@ export class FamilyManager {
 	}
 
 
-  updateFamilyMembership(entity: Entity) {
+  updateFamilyMembership(entity: E) {
     const addListenerBits = new Bits();
     const removeListenerBits = new Bits();
     for (const family of this.entityListenerMasks.keys()) {

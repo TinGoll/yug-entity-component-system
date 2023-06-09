@@ -11,18 +11,20 @@ import { Family } from "./Family";
 import { FamilyManager } from "./FamilyManager";
 import { SystemManager } from "./SystemManager";
 
-export class Engine extends Map<Entity, Entity> {
+export class Engine<D extends object = object, E extends Entity = Entity> extends Map<E, E> {
+  public userData: D = <D>{};
+
   private static instance?: Engine;
 
   private static empty: Family = Family.all().get();
 
-  private readonly componentAdded: Listener<Entity> = new ComponentListener(this);
-  private readonly componentRemoved: Listener<Entity> = new ComponentListener(this);
+  private readonly componentAdded: Listener<E> = new ComponentListener<E>(this);
+  private readonly componentRemoved: Listener<E> = new ComponentListener<E>(this);
   private systemManager = new SystemManager(new EngineSystemListener(this));
 
-  private entityManager: EntityManager = new EntityManager(new EngineEntityListener(this));
+  private entityManager: EntityManager<E> = new EntityManager<E>(new EngineEntityListener<E>(this));
 
-  private familyManager: FamilyManager = new FamilyManager(this.entityManager.getEntities());
+  private familyManager: FamilyManager<E> = new FamilyManager<E>(this.entityManager.getEntities());
 
   private updating: boolean = false;
   private notifying: boolean = false;
@@ -42,8 +44,8 @@ export class Engine extends Map<Entity, Entity> {
    * Создает новый объект Entity
    * @return объект {@link Entity}
    */
-  createEntity(): Entity {
-    return new Entity();
+  createEntity(): E {
+    return new Entity() as E;
   }
 
   /**
@@ -64,7 +66,7 @@ export class Engine extends Map<Entity, Entity> {
    * Вызовет ошибку, если данный объект
    * уже был зарегистрирован в движке.
    */
-  addEntity(entity: Entity): void {
+  addEntity(entity: E): void {
     try {
       this.entityManager.addEntity(entity);
     } catch (error: unknown) {
@@ -75,7 +77,7 @@ export class Engine extends Map<Entity, Entity> {
   /**
    * Удаляет сущность из этого движка.
    */
-  removeEntity(entity: Entity): void {
+  removeEntity(entity: E): void {
     this.entityManager.removeEntity(entity);
   }
 
@@ -107,8 +109,8 @@ export class Engine extends Map<Entity, Entity> {
    * @return Неизменяемый массив сущностей, которые будут соответствовать
    * состоянию сущности в движке.
    */
-  getEntities(): ImmutableArray<Entity> {
-    return this.entityManager.getEntities();
+  getEntities(): ImmutableArray<E> {
+    return this.entityManager.getEntities() as ImmutableArray<E>;
   }
 
   /**
@@ -152,7 +154,7 @@ export class Engine extends Map<Entity, Entity> {
    * Возвращает неизменяемую коллекцию сущностей для указанного {@link Family}.
    * Возвращает один и тот же экземпляр каждый раз для одного и того же семейства.
    */
-  public getEntitiesFor(family: Family): ImmutableArray<Entity> {
+  public getEntitiesFor(family: Family): ImmutableArray<E> {
     return this.familyManager.getEntitiesFor(family);
   }
 
@@ -184,13 +186,13 @@ export class Engine extends Map<Entity, Entity> {
     }
   }
 
-  public addEntityInternal(entity: Entity) {
+  public addEntityInternal(entity: E) {
     entity.componentAdded.add(this.componentAdded);
     entity.componentRemoved.add(this.componentRemoved);
     this.familyManager.updateFamilyMembership(entity);
   }
 
-  public removeEntityInternal(entity: Entity) {
+  public removeEntityInternal(entity: E) {
     this.familyManager.updateFamilyMembership(entity);
     entity.componentAdded.remove(this.componentAdded);
     entity.componentRemoved.remove(this.componentRemoved);
@@ -231,19 +233,19 @@ export class Engine extends Map<Entity, Entity> {
   }
 }
 
-class EngineEntityListener implements EntityListener {
+class EngineEntityListener<E extends Entity = Entity> implements EntityListener<E> {
   constructor(private readonly engine: Engine) {}
-  public entityAdded(entity: Entity): void {
+  public entityAdded(entity: E): void {
     this.engine.addEntityInternal(entity);
   }
-  public entityRemoved(entity: Entity): void {
+  public entityRemoved(entity: E): void {
     this.engine.removeEntityInternal(entity);
   }
 }
 
-class ComponentListener implements Listener<Entity> {
+class ComponentListener<E extends Entity = Entity> implements Listener<E> {
   constructor(private readonly engine: Engine) {}
-  public receive(signal: Signal<Entity>, object: Entity) {
+  public receive(signal: Signal<E>, object: E) {
     this.engine.getFamilyManager().updateFamilyMembership(object);
   }
 }

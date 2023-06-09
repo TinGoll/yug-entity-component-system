@@ -2,11 +2,10 @@ import { Entity } from "./Entity";
 import { EntityListener } from "../@interfaces/EntityListener";
 import { ImmutableArray } from "../utils/ImmutableArray";
 
-export class EntityManager {
-  private entities: Array<Entity> = new Array<Entity>();
-  private entitySet = new Map<Entity, Entity>();
-  private immutableEntities: ImmutableArray<Entity> =
-    new ImmutableArray<Entity>(this.entities);
+export class EntityManager<E extends Entity = Entity> {
+  private entities: Array<E> = new Array<E>();
+  private entitySet = new Map<E, E>();
+  private immutableEntities = new ImmutableArray<E>(this.entities);
   private listener: EntityListener;
 
   constructor(listener: EntityListener) {
@@ -17,14 +16,14 @@ export class EntityManager {
    * Добавление новой сущности {@link Entity} в движок.
    * @param entity {@link Entity}
    */
-  addEntity(entity: Entity): void {
+  addEntity(entity: E): void {
     this.addEntityInternal(entity);
   }
   /**
    * Удаление сущности {@link Entity} из движка.
    * @param entity
    */
-  removeEntity(entity: Entity): void {
+  removeEntity(entity: E): void {
     this.removeEntityInternal(entity);
   }
   /**
@@ -38,7 +37,7 @@ export class EntityManager {
   /**
    * Получить все сущности.
    */
-  getEntities(): ImmutableArray<Entity> {
+  getEntities(): ImmutableArray<E> {
     return this.immutableEntities;
   }
 
@@ -46,7 +45,7 @@ export class EntityManager {
    * Добавление нового объекта {@link Entity}. Выбрасывает ошибку, если объект уже зарегистрирован.
    * @param entity объект Сущности.
    */
-  protected addEntityInternal(entity: Entity): void {
+  protected addEntityInternal(entity: E): void {
     if (this.entitySet.has(entity)) {
       throw new Error("Объект уже зарегистрирован ");
     }
@@ -55,7 +54,7 @@ export class EntityManager {
     this.listener.entityAdded(entity);
   }
 
-  protected removeEntityInternal(entity: Entity) {
+  protected removeEntityInternal(entity: E) {
     const removed = this.entitySet.delete(entity);
     if (removed) {
       entity.scheduledForRemoval = false;
