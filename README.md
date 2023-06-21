@@ -21,7 +21,6 @@ To use yug-entity-component-system in your project, follow these steps:
 
 Import the necessary classes from yug-entity-component-system:
 
-```javascript
 import { Entity, Component, IteratingSystem, Family, Engine } from 'yug-entity-component-system';
 
 Define your custom context:
