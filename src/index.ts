@@ -8,4 +8,14 @@ import { IteratingSystem } from "./systems/IteratingSystem";
 import { ImmutableArray } from "./utils/ImmutableArray";
 
 export default Engine.create;
-export { Engine, Entity, Component, EntitySystem, Family, IteratingSystem, ComponentClass, BaseSystem, ImmutableArray };
+export {
+  Engine,
+  Entity,
+  Component,
+  EntitySystem,
+  Family,
+  IteratingSystem,
+  ComponentClass,
+  BaseSystem,
+  ImmutableArray,
+};
