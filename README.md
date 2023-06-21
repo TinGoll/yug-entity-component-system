@@ -26,21 +26,21 @@ import { Entity, Component, IteratingSystem, Family, Engine } from 'yug-entity-c
 
 Define your custom context:
 
-```javascript
+
 // Define your custom context
 interface Context {}
 
-```javascript
+
 // Define the default context value
 const defaultContext: Context = {};
 
 Create entities and components:
 
-```javascript
+
 // Extend the Entity class if needed
 class MyEntity extends Entity {}
 
-```javascript
+
 // Create a component with no logic
 class MyComponent extends Component {
   x: number = 0;
@@ -69,7 +69,7 @@ class MySystem extends IteratingSystem {
 }
 
 Set up and run the engine:
-```javascript
+
 // Create the engine
 const engine = new Engine<MyEntity, Context>(defaultContext);
 
